@@ -14,6 +14,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestSources", "testdata\TestAssembly\TestSources.csproj", "{449752E7-3AA2-48C5-A2A2-21D2E30B10A2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{D02971E0-C612-4CEF-8E4F-B91DA0D15664}"
+	ProjectSection(SolutionItems) = preProject
+		Directory.Build.props = Directory.Build.props
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{02BE66B9-4412-4C34-8105-4B65B2C70449}"
 EndProject

@@ -8,7 +8,6 @@
 
 	<PropertyGroup>
 		<PackageId>Scifa.CheckedExceptions</PackageId>
-		<PackageVersion>1.0.0.0</PackageVersion>
 		<Authors>Scifa</Authors>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 		<Description>Provides Opt-in checked exceptions for C# using Roslyn Analyzers.</Description>
