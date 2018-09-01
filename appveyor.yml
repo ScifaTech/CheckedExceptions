@@ -58,7 +58,7 @@ build:
 
 dotnet_csproj:
   patch: true
-  file: 'src\Directory.Build.Props'
+  file: 'src\Directory.Build.props'
   version: '{version}'
   package_version: '{version}'
   assembly_version: '{version}'
@@ -74,3 +74,10 @@ dotnet_csproj:
 
 # to run tests against only selected assemblies and/or categories
 test: off
+
+#---------------------------------#
+#     artifacts configuration     #
+#---------------------------------#
+
+artifacts:
+  - path: '**\*.nupkg'
