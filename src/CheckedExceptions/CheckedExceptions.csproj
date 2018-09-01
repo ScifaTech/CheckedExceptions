@@ -1,0 +1,58 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard1.3</TargetFramework>
+		<IncludeBuildOutput>false</IncludeBuildOutput>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<PackageId>Scifa.CheckedExceptions</PackageId>
+		<PackageVersion>1.0.0.0</PackageVersion>
+		<Authors>Scifa</Authors>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+		<Description>Provides Opt-in checked exceptions for C# using Roslyn Analyzers.</Description>
+		<Copyright>Copyright (c) Scifa Technology Ltd 2018. All rights reserved.</Copyright>
+		<PackageTags>CheckedExceptions, analyzers</PackageTags>
+		<NoPackageAnalysis>true</NoPackageAnalysis>
+		<AssemblyName>Scifa.CheckedExceptions</AssemblyName>
+		<RootNamespace>Scifa.CheckedExceptions</RootNamespace>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+	  <LangVersion>7.3</LangVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Remove="bin\**" />
+	  <EmbeddedResource Remove="bin\**" />
+	  <None Remove="bin\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="2.4.0" PrivateAssets="all" />
+		<ProjectReference Include="..\CheckedExceptions.Attributes\CheckedExceptions.Attributes.csproj" />
+		<PackageReference Update="NETStandard.Library" PrivateAssets="all" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Update="Resources.Designer.cs" DesignTime="True" AutoGen="True" DependentUpon="Resources.resx" />
+		<EmbeddedResource Update="Resources.resx" Generator="ResXFileCodeGenerator" LastGenOutput="Resources.Designer.cs" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="" />
+	</ItemGroup>
+
+	<Target Name="PublishToLocalFeed" AfterTargets="Pack" DependsOnTargets="GenerateNuspec" Condition="('$(LocalNugetFeedDir)' != '') AND ('$(GeneratePackageOnBuild)' == 'true')">
+		<ItemGroup>
+			<NupkgFiles Include="$(PackageOutputPath)\*.nupkg" />
+		</ItemGroup>
+		<PropertyGroup>
+			<ApiKeyArguments></ApiKeyArguments>
+			<ApiKeyArguments Condition="'$(LocalNugetFeedApiKey)' != ''">$(LocalNugetFeedApiKey)</ApiKeyArguments>
+		</PropertyGroup>
+		<Message Text="Publishing '%(NupkgFiles.Identity)' to '$(LocalNugetFeedDir)'" />
+		<Exec Command="nuget push &quot;%(NupkgFiles.Identity)&quot; $(ApiKeyArguments)-Source &quot;$(LocalNugetFeedDir)&quot;" WorkingDirectory="$(ProjectDir)" ContinueOnError="true" />
+	</Target>
+</Project>
