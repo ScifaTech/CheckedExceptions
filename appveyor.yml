@@ -14,6 +14,10 @@ version: 1.0.{build}
 # Do not build feature branch with open Pull Requests
 skip_branch_with_pr: true
 
+branches:
+  only:
+    - master
+
 # Maximum number of concurrent jobs for the project
 max_jobs: 1
 
@@ -81,3 +85,10 @@ test: off
 
 artifacts:
   - path: '**\*.nupkg'
+
+deploy:
+  provider: NuGet
+  api_key:
+    secure: N7TtcdGeWJv4VdDmeke3KezEcKd76fHvO2j4q/axN6UhWkN7+mFmnRwv3P1qH6++
+  skip_symbols: false
+  artifact: '**\*.nupkg'
