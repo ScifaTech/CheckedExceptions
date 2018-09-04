@@ -1,6 +1,9 @@
 # CheckedExceptions.NET
 Provides an opt-in solution for exceptions management in C# code bases
 
+[![Build status](https://ci.appveyor.com/api/projects/status/wpibvslhhtmq10hw?svg=true)](https://ci.appveyor.com/project/rjwpope/checkedexceptions)
+
+
 ## Purpose
 Early in the development of C# the design team chose not to include checked exceptions in the language.
 This was decided because they could not find a solution they felt would be appropriate.
