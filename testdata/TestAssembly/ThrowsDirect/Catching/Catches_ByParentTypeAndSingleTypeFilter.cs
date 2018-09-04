@@ -3,7 +3,7 @@ using Scifa.CheckedExceptions.Attributes;
 
 namespace TestAssembly
 {
-	public partial class Class1
+	public partial class ThrowsDirect
 	{
 		public void Catches_ByParentTypeAndSingleTypeFilter()
 		{

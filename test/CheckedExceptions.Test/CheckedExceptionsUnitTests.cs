@@ -1,95 +1,121 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using TestHelper;
-using Scifa.CheckedExceptions;
-using System.Linq;
-using System.Collections.Generic;
 using Scifa.CheckedExceptions.Attributes;
-using System.Reflection;
+using TestAssembly;
+using TestHelper;
 
 namespace Scifa.CheckedExceptions.Test
 {
 	[TestClass]
 	public class UnitTest : CodeFixVerifier
 	{
-		//No diagnostics expected to show up
 		[TestMethod]
-		public void EmptySource_NoDiagnostics()
+		public void Empty_class_causes_no_diagnostics()
 		{
-			var test = @"";
-
-			VerifyCSharpDiagnostic(test);
+			var (fullSource, _) = BuildClass();
+			VerifyCSharpDiagnostic(fullSource /* no diagnostics */);
 		}
 
-		//Diagnostic and CodeFix both triggered and checked for
 		[TestMethod]
-		public void Simple_throw_Needs_Attribute()
+		public void Undeclared_throw_causes_error()
 		{
-			var test = @"
-using System;
-    
-[assembly: Scifa.CheckedExceptions.Attributes.CheckExceptions]
+			string method = @"
+				public void MyMethod(){
+					throw new NotImplementedException();
+				}
+			";
 
-namespace ConsoleApplication1
-{
-    class TypeName
-    {   
-        public void DoWork(){
-            throw new InvalidOperationException();
-        }
-    }
-}";
-			var expected = new DiagnosticResult
+			var (fullSource, codeLocationProvider) = BuildClass(method);
+			VerifyCSharpDiagnostic(fullSource,
+				new DiagnosticResult
+				{
+					Id = CheckedExceptionsAnalyzer.DiagnosticId,
+					Locations = new[] { codeLocationProvider.GetDiagnosticLocation(method: 0, line: 3, @char: 0) },
+					Message = $"The method 'MyMethod' does not allow throwing 'NotImplementedException'. This must be declared or caught.",
+					Severity = DiagnosticSeverity.Error
+				}
+			);
+		}
+
+		private (string, ICodeLocator) BuildClass(params string[] methods)
+		{
+			string header = @"
+using System;
+using Scifa.CheckedExceptions.Attributes;
+
+namespace MyNamespace {
+	public class MyClass {
+";
+			string footer = @"
+	}
+}
+";
+			int nextLine = header.LineCount();
+			var sb = new StringBuilder(header);
+			int[] methodStarts = new int[methods.Length];
+
+			for (int i = 0; i < methods.Length; i++)
 			{
-				Id = "CheckedExceptions",
-				Message = String.Format(Resources.AnalyzerMessageFormat, "DoWork", "InvalidOperationException", 15),
-				Severity = DiagnosticSeverity.Error,
-				Locations =
-					new[] {
-							new DiagnosticResultLocation("Test0.cs", 11, 19)
-						}
-			};
+				methodStarts[i] = nextLine;
+				sb.Append(methods[i]).AppendLine();
+				nextLine += methods[i].LineCount() + 1;
+			}
 
-			VerifyCSharpDiagnostic(test, expected);
-
-			var fixtest = @"
-using System;
-    
-[assembly: Scifa.CheckedExceptions.Attributes.CheckExceptions]
-
-namespace ConsoleApplication1
-{
-    class TypeName
-    {
-        [Scifa.CheckedExceptions.Attributes.Throws(typeof(InvalidOperationException))]
-        public void DoWork(){
-            throw new InvalidOperationException();
-        }
-    }
-}";
-			// newCompilerDiagnostics is broken - it reports a new error for identical code
-			VerifyCSharpFix(test, fixtest, allowNewCompilerDiagnostics: true);
+			return (sb.ToString(), new CodeLocator(methods, methodStarts));
 		}
 
 		protected override IEnumerable<MetadataReference> GetAdditionalReferences()
 		{
-			return new[] {
-				AssemblyReferenceFromType(typeof(CheckExceptionsAttribute)),
-				MetadataReference.CreateFromFile(Assembly.LoadWithPartialName("System.Runtime").Location),
-			};
-		}
-
-		protected override CodeFixProvider GetCSharpCodeFixProvider()
-		{
-			return new DeclareThrowCodeFixProvider();
+			yield return MetadataReference.CreateFromFile(typeof(CheckExceptionsAttribute).Assembly.Location);
 		}
 
 		protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
 		{
 			return new CheckedExceptionsAnalyzer();
+		}
+
+	}
+
+	internal class CodeLocator : ICodeLocator
+	{
+		private readonly string[] methods;
+		private readonly int[] methodStarts;
+
+		public CodeLocator(string[] methods, int[] methodStarts)
+		{
+			this.methods = methods;
+			this.methodStarts = methodStarts;
+		}
+
+		public DiagnosticResultLocation GetDiagnosticLocation(int method, int line, int @char)
+		{
+			return new DiagnosticResultLocation(
+				"Test0.cs",
+				line + methodStarts[method],
+				2 + @char + methods[method].Split('\n')[line].TakeWhile(char.IsWhiteSpace).Count()
+			);
+		}
+	}
+
+	public static class StringHelpers
+	{
+		public static int LineCount(this string s)
+		{
+			return CharCount(s, '\n');
+		}
+
+		private static int CharCount(this string s, char v)
+		{
+			int result = 0;
+			for (int i = 0; i < s.Length; i++)
+				if (s[i] == v) result++;
+
+			return result;
 		}
 	}
 }

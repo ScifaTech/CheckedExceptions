@@ -3,10 +3,10 @@ using Scifa.CheckedExceptions.Attributes;
 
 namespace TestAssembly
 {
-	public partial class Class1
+	public partial class ThrowsDirect
 	{
-		[Throws(typeof(NotImplementedException))]
-		public void Declares_NotImplementedException()
+		[Throws(typeof(Exception))]
+		public void Declares_ParentException()
 		{ 
 			throw new NotImplementedException();
 		}
