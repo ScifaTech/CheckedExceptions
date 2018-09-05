@@ -6,6 +6,10 @@
     <RootNamespace>Scifa.CheckedExceptions.Test</RootNamespace>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <LangVersion>7.3</LangVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <Compile Remove="TestFramework\**" />
     <EmbeddedResource Remove="TestFramework\**" />

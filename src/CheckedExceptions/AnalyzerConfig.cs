@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 
@@ -7,29 +8,16 @@ namespace Scifa.CheckedExceptions
 {
 	internal class AnalyzerConfig
 	{
-		private List<Regex> namespaceRegexes = new List<Regex>();
+		private readonly bool checkAssembly;
 
-		internal bool ShouldAnalyze(INamedTypeSymbol containingType)
+		public AnalyzerConfig(IEnumerable<AttributeData> checkExceptionAttributes)
 		{
-			if (namespaceRegexes.Count == 0)
-				return true;
-
-			foreach (var mask in namespaceRegexes)
-			{
-				if (mask.IsMatch(containingType.ContainingNamespace.Name))
-					return true;
-			}
-
-			return false;
+			checkAssembly = checkExceptionAttributes.Any();
 		}
 
-		internal void SetNamespaceMasks(List<string> namespaceMasks)
+		public bool ShouldAnalyze(INamedTypeSymbol containingType)
 		{
-			foreach (var mask in namespaceMasks)
-			{
-				string rx = "^" + Regex.Escape(mask).Replace(@"\*\*", @"\.\*").Replace(@"\*", @"[^\.]*") + "$";
-				namespaceRegexes.Add(new Regex(rx));
-			}
+			return checkAssembly;
 		}
 	}
 }

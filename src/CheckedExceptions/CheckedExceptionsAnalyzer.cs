@@ -36,29 +36,12 @@ namespace Scifa.CheckedExceptions
 
 		private void CompilationStart(CompilationStartAnalysisContext context)
 		{
-			List<string> NamespaceMasks = new List<string>();
-
 			var checkExceptionAttributes = from attr in context.Compilation.Assembly.GetAttributes()
 										   let c = attr.AttributeClass
 										   where KnownTypes.CheckExceptionsAttributesFullName == c.GetFullName()
 										   select attr;
 
-			foreach (var attr in checkExceptionAttributes)
-			{
-				if (!attr.NamedArguments.Any())
-				{
-					NamespaceMasks.Clear();
-					break;
-				}
-
-				NamespaceMasks.AddRange(
-					from arg in attr.NamedArguments
-					where nameof(CheckExceptionsAttribute.NamespaceMask) == arg.Key
-					select (string)arg.Value.Value
-				);
-			}
-			var analyzerConfig = new AnalyzerConfig();
-			analyzerConfig.SetNamespaceMasks(NamespaceMasks);
+			var analyzerConfig = new AnalyzerConfig(checkExceptionAttributes);
 
 			context.RegisterCodeBlockAction(blockContext => AnalyzeCodeBlock(blockContext, analyzerConfig));
 		}
@@ -105,7 +88,7 @@ namespace Scifa.CheckedExceptions
 		{
 			var types = from attr in methodSymbol.GetAttributes()
 						where attr.AttributeClass.GetFullName() == KnownTypes.ThrowsAttributeFullName
-						let declType = attr.ConstructorArguments[0].Value as INamedTypeSymbol
+						let declType = attr.ConstructorArguments.SingleOrDefault().Value as INamedTypeSymbol
 						where declType != null
 						select declType;
 

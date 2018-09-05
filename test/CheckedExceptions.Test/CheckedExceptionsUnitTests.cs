@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -14,11 +13,13 @@ namespace Scifa.CheckedExceptions.Test
 	[TestClass]
 	public class UnitTest : CodeFixVerifier
 	{
+		private static readonly DiagnosticResult[] NoDiagnosticResults = new DiagnosticResult[0];
+
 		[TestMethod]
 		public void Empty_class_causes_no_diagnostics()
 		{
-			var (fullSource, _) = BuildClass();
-			VerifyCSharpDiagnostic(fullSource /* no diagnostics */);
+			var source = BuildClass();
+			VerifyCSharpDiagnostic(source.FullText, NoDiagnosticResults);
 		}
 
 		[TestMethod]
@@ -30,92 +31,98 @@ namespace Scifa.CheckedExceptions.Test
 				}
 			";
 
-			var (fullSource, codeLocationProvider) = BuildClass(method);
-			VerifyCSharpDiagnostic(fullSource,
+			var source = BuildClass(method);
+			VerifyCSharpDiagnostic(source.FullText,
 				new DiagnosticResult
 				{
 					Id = CheckedExceptionsAnalyzer.DiagnosticId,
-					Locations = new[] { codeLocationProvider.GetDiagnosticLocation(method: 0, line: 3, @char: 0) },
+					Locations = new[] { source.GetDiagnosticLocation(method: 0, line: 3, @char: 0) },
 					Message = $"The method 'MyMethod' does not allow throwing 'NotImplementedException'. This must be declared or caught.",
 					Severity = DiagnosticSeverity.Error
-				}
-			);
+				});
 		}
 
-		private (string, ICodeLocator) BuildClass(params string[] methods)
+		[TestMethod]
+		public void Undeclared_throw_causes_no_error_when_not_checking()
 		{
-			string header = @"
-using System;
-using Scifa.CheckedExceptions.Attributes;
+			string method = @"
+				public void MyMethod(){
+					throw new NotImplementedException();
+				}
+			";
 
-namespace MyNamespace {
-	public class MyClass {
-";
-			string footer = @"
-	}
-}
-";
-			int nextLine = header.LineCount();
-			var sb = new StringBuilder(header);
-			int[] methodStarts = new int[methods.Length];
+			var source = BuildClass(method).WithoutAssemblyAttribute("CheckExceptions");
+			VerifyCSharpDiagnostic(source.FullText, NoDiagnosticResults);
+		}
 
-			for (int i = 0; i < methods.Length; i++)
-			{
-				methodStarts[i] = nextLine;
-				sb.Append(methods[i]).AppendLine();
-				nextLine += methods[i].LineCount() + 1;
+		[TestMethod]
+		public void Declared_throw_causes_no_error()
+		{
+			string method = @"
+			[Scifa.CheckedExceptions.Attributes.ThrowsAttribute(typeof(NotImplementedException))]
+			public void Declares_NotImplementedException()
+			{ 
+				throw new NotImplementedException();
 			}
+			";
 
-			return (sb.ToString(), new CodeLocator(methods, methodStarts));
+			var source = BuildClass(method);
+			VerifyCSharpDiagnostic(source.FullText, NoDiagnosticResults);
+		}
+
+		private SourceCode BuildClass(params string[] methods)
+		{
+			return SourceCode.Empty
+				.WithUsing("System")
+				.WithUsing("Scifa.CheckedExceptions.Attributes")
+				.WithAssemblyAttribute("CheckExceptions")
+				.WithNamespace("Scifa.CheckedExceptions.TestSnippets")
+				.WithClassName("Class1")
+				.WithMethods(methods);
 		}
 
 		protected override IEnumerable<MetadataReference> GetAdditionalReferences()
-		{
-			yield return MetadataReference.CreateFromFile(typeof(CheckExceptionsAttribute).Assembly.Location);
-		}
+		{// CONTENT from: https://github.com/dotnet/corefx/issues/11601#issuecomment-336829147
 
+			// first, collect all assemblies
+			var assemblies = new HashSet<Assembly>();
+
+			IncludeAll(Assembly.Load(new AssemblyName("netstandard")));
+
+			//// add extra assemblies which are not part of netstandard.dll, for example:
+			IncludeAll(typeof(CheckExceptionsAttribute).Assembly);
+
+			// second, build metadata references for these assemblies
+			var result = new List<MetadataReference>(assemblies.Count);
+			foreach (var assembly in assemblies)
+			{
+				result.Add(MetadataReference.CreateFromFile(assembly.Location));
+			}
+
+			return result;
+
+			// helper local function - add assembly and its referenced assemblies
+			void IncludeAll(Assembly assembly)
+			{
+				if (!assemblies.Add(assembly))
+				{
+					// already added
+					return;
+				}
+
+				var referencedAssemblyNames = assembly.GetReferencedAssemblies();
+
+				foreach (var assemblyName in referencedAssemblyNames)
+				{
+					var loadedAssembly = Assembly.Load(assemblyName);
+					assemblies.Add(loadedAssembly);
+				}
+			}
+		}
 		protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
 		{
 			return new CheckedExceptionsAnalyzer();
 		}
 
-	}
-
-	internal class CodeLocator : ICodeLocator
-	{
-		private readonly string[] methods;
-		private readonly int[] methodStarts;
-
-		public CodeLocator(string[] methods, int[] methodStarts)
-		{
-			this.methods = methods;
-			this.methodStarts = methodStarts;
-		}
-
-		public DiagnosticResultLocation GetDiagnosticLocation(int method, int line, int @char)
-		{
-			return new DiagnosticResultLocation(
-				"Test0.cs",
-				line + methodStarts[method],
-				2 + @char + methods[method].Split('\n')[line].TakeWhile(char.IsWhiteSpace).Count()
-			);
-		}
-	}
-
-	public static class StringHelpers
-	{
-		public static int LineCount(this string s)
-		{
-			return CharCount(s, '\n');
-		}
-
-		private static int CharCount(this string s, char v)
-		{
-			int result = 0;
-			for (int i = 0; i < s.Length; i++)
-				if (s[i] == v) result++;
-
-			return result;
-		}
 	}
 }
