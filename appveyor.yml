@@ -77,7 +77,7 @@ dotnet_csproj:
 #---------------------------------#
 
 # to run tests against only selected assemblies and/or categories
-test: off
+# test: off
 
 #---------------------------------#
 #     artifacts configuration     #
