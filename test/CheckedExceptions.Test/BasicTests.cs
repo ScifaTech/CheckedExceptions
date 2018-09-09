@@ -26,7 +26,7 @@ namespace Scifa.CheckedExceptions.Test
 		{
 			string method = @"
 				public void MyMethod(){
-					throw new NotImplementedException();
+					throw new ArgumentException();
 				}
 			";
 
@@ -35,8 +35,8 @@ namespace Scifa.CheckedExceptions.Test
 				new DiagnosticResult
 				{
 					Id = CheckedExceptionsAnalyzer.DiagnosticId,
-					Locations = new[] { source.GetDiagnosticLocation(method: 0, line: 3, @char: 0) },
-					Message = $"The method 'MyMethod' does not allow throwing 'NotImplementedException'. This must be declared or caught.",
+					Locations = new[] { source.GetDiagnosticLocation(method: 0, line: 2, @char: 0) },
+					Message = $"The method 'MyMethod' does not allow throwing 'ArgumentException'. This must be declared or caught.",
 					Severity = DiagnosticSeverity.Error
 				});
 		}
@@ -46,7 +46,7 @@ namespace Scifa.CheckedExceptions.Test
 		{
 			string method = @"
 				public void MyMethod(){
-					throw new NotImplementedException();
+					throw new ArgumentException();
 				}
 			";
 
@@ -58,10 +58,10 @@ namespace Scifa.CheckedExceptions.Test
 		public void Declared_throw_causes_no_error()
 		{
 			string method = @"
-			[Throws(typeof(NotImplementedException))]
-			public void Declares_NotImplementedException()
+			[Throws(typeof(ArgumentException))]
+			public void Declares_ArgumentException()
 			{ 
-				throw new NotImplementedException();
+				throw new ArgumentException();
 			}
 			";
 

@@ -7,7 +7,7 @@ using TestHelper;
 
 namespace Scifa.CheckedExceptions.Test
 {
-    internal abstract class TestBase : CodeFixVerifier
+    public abstract class TestBase : CodeFixVerifier
     {
         protected static readonly DiagnosticResult[] NoDiagnosticResults = new DiagnosticResult[0];
 

@@ -65,7 +65,7 @@ namespace Scifa.CheckedExceptions.Test
 
 			for (int i = 0; i < methods.Length; i++)
 			{
-				methodStarts[i] = line;
+				methodStarts[i] = line+1;
 				sb.AppendLine(methods[i]).AppendLine();
 				line += methods[i].LineCount() + 2;
 			}
@@ -86,12 +86,12 @@ namespace Scifa.CheckedExceptions.Test
 
 		public string FullText => fullText ?? (fullText = CreateFullText());
 
-		public DiagnosticResultLocation GetDiagnosticLocation(int method, int line, int @char)
+		public DiagnosticResultLocation GetDiagnosticLocation(int method, int line, int @char = 0)
 		{
 			return new DiagnosticResultLocation(
 				"Test0.cs",
 				line + methodStarts[method],
-				2 + @char + methods[method].Split('\n')[line].TakeWhile(char.IsWhiteSpace).Count()
+				1 + @char + methods[method].Split('\n')[line].TakeWhile(char.IsWhiteSpace).Count()
 			);
 		}
 

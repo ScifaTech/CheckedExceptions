@@ -79,11 +79,12 @@ namespace Scifa.CheckedExceptions
 			if (@catch.Filter != null)
 			{
 				string varName = @catch.Declaration.Identifier.ToString();
-				if (string.IsNullOrWhiteSpace(varName))
-					// They don't capture the exception type. As such, there is no way
+				if (string.IsNullOrWhiteSpace(varName)){
+					// They don't capture the exception variable. As such, there is no way
 					// the filter can be a simple type filter and thus it will likely
 					// be too complex to analyze. Assume it's possible to leak the exception.
 					return false;
+				}
 
 				var result= @catch.Filter.FilterExpression.Accept(new FilterExpressionMatchesTypeVisitor(model, varName, throwType));
 				return result;
