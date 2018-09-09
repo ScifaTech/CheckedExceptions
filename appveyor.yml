@@ -18,6 +18,12 @@ branches:
   only:
     - master
 
+only_commits:
+  files: 
+    - src/
+    - *.sln
+    - appveyor.yml
+
 # Maximum number of concurrent jobs for the project
 max_jobs: 1
 
