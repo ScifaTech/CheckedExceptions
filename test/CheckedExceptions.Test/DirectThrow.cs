@@ -11,7 +11,7 @@ using TestHelper;
 namespace Scifa.CheckedExceptions.Test
 {
 	[TestClass]
-	public class UnitTest : CodeFixVerifier
+	public class DirectThrow : CodeFixVerifier
 	{
 		private static readonly DiagnosticResult[] NoDiagnosticResults = new DiagnosticResult[0];
 
@@ -59,7 +59,7 @@ namespace Scifa.CheckedExceptions.Test
 		public void Declared_throw_causes_no_error()
 		{
 			string method = @"
-			[Scifa.CheckedExceptions.Attributes.ThrowsAttribute(typeof(NotImplementedException))]
+			[Throws(typeof(NotImplementedException))]
 			public void Declares_NotImplementedException()
 			{ 
 				throw new NotImplementedException();
