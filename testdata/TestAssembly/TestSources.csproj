@@ -7,7 +7,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\src\CheckedExceptions.Attributes\CheckedExceptions.Attributes.csproj" />
+	  <PackageReference Include="Scifa.CheckedExceptions" Version="1.0.0-local" />
 	</ItemGroup>
 
 </Project>

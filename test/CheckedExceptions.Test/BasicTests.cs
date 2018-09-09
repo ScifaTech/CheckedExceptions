@@ -1,11 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Reflection;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Scifa.CheckedExceptions.Attributes;
-using TestAssembly;
 using TestHelper;
 
 namespace Scifa.CheckedExceptions.Test

@@ -24,7 +24,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\CheckedExceptions.Attributes\CheckedExceptions.Attributes.csproj" />
     <ProjectReference Include="..\..\src\CheckedExceptions\CheckedExceptions.csproj" />
-    <ProjectReference Include="..\..\testdata\TestAssembly\TestSources.csproj" />
   </ItemGroup>
 
 </Project>
