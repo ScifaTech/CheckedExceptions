@@ -21,7 +21,7 @@ branches:
 only_commits:
   files: 
     - src/
-    - *.sln
+    - "*.sln"
     - appveyor.yml
 
 # Maximum number of concurrent jobs for the project
